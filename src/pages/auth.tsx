@@ -1,4 +1,5 @@
 import Input from "@/components/Input";
+import { env } from "process";
 import React from "react";
 
 type Props = {};
@@ -68,7 +69,7 @@ function Auth({}: Props) {
               <span
                 onClick={toggleVariant}
                 className="text-white ml-1 hover:underline cursor-pointer"
-              >
+                >
                 {variant === "login" ? "Create an account" : "Sign up"}
               </span>
             </p>
