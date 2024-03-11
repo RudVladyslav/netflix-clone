@@ -1,10 +1,16 @@
 import Input from "@/components/Input";
 import { env } from "process";
-import React from "react";
+import axios from "axios";
+import React, { useCallback } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/router";
+import {FaGoogle} from 'react-icons/fa'
+import {FaGithub} from 'react-icons/fa'
 
 type Props = {};
 
 function Auth({}: Props) {
+  const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [name, setName] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -13,6 +19,36 @@ function Auth({}: Props) {
   const toggleVariant = () => {
     setVariant(variant === "login" ? "register" : "login");
   };
+
+  const login = useCallback(async () => {
+    try {
+      await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: "/",
+      });
+      router.push("/");
+    } catch (error) {
+      console.debug("error", error);
+    }
+  }, [email, password, router])
+
+  const register = useCallback(async () => {
+    try {
+      const response = await axios.post("/api/register", {
+        email,
+        name,
+        password,
+      });
+      login();
+      console.debug("res", response);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [email, name, password]);
+
+ ;
 
   return (
     <div className="relative h-full w-full bg-[url('/images/hero.jpg')] bg-no-repeat bg-center bg-fixed bg-cover">
@@ -30,20 +66,14 @@ function Auth({}: Props) {
                 <Input
                   id={"name"}
                   label="Username"
-                  onChange={
-                    // set name
-                    (event) => setName(event.target.value)
-                  }
+                  onChange={(event) => setName(event.target.value)}
                   value={name}
                 />
               )}
               <Input
                 id={"email"}
                 label="Email"
-                onChange={
-                  // set email
-                  (event) => setEmail(event.target.value)
-                }
+                onChange={(event) => setEmail(event.target.value)}
                 value={email}
                 type="email"
               />
@@ -51,17 +81,27 @@ function Auth({}: Props) {
               <Input
                 id={"password"}
                 label="Password"
-                onChange={
-                  // set password
-                  (event) => setPassword(event.target.value)
-                }
+                onChange={(event) => setPassword(event.target.value)}
                 value={password}
                 type="password"
               />
             </div>
-            <button className="bg-red-500 py-3 text-white rounded-md w-full mt-10 hover:bg-red-700 transition">
+            <button
+              onClick={variant === "login" ? login : register}
+              className="bg-red-500 py-3 text-white rounded-md w-full mt-10 hover:bg-red-700 transition"
+            >
               {variant === "login" ? "Login" : "Register"}
             </button>
+            <div className="flex justify-between mt-4">
+              <button className="bg-white py-3 text-black rounded-md w-[48%] hover:bg-gray-200 transition">
+                <FaGoogle className="inline-block text-xl mr-2" />
+                Google
+              </button>
+              <button className="bg-gray-800 py-3 text-white rounded-md w-[48%] hover:bg-gray-700 transition">
+                <FaGithub className="inline-block text-xl mr-2" />
+                Github
+              </button>
+            </div>
             <p className="text-neutral-500 mt-12">
               {variant === "login"
                 ? "Don't have an account?"
@@ -69,7 +109,7 @@ function Auth({}: Props) {
               <span
                 onClick={toggleVariant}
                 className="text-white ml-1 hover:underline cursor-pointer"
-                >
+              >
                 {variant === "login" ? "Create an account" : "Sign up"}
               </span>
             </p>
